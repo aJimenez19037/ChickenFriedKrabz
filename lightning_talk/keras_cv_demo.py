@@ -49,13 +49,15 @@ model = keras_cv.models.ImageClassifier( # cater pretained model for image class
 )
 model.compile( # select loss function, optimizer, and metric being optimized
     loss='categorical_crossentropy',
-    optimizer=keras.optimizers.Adam(learning_rate=1e-5),
+    optimizer=keras.optimizers.Adam(learning_rate=1e-4),
     metrics=['accuracy']
 )
-
-# Train your model
+#Train your model
 model.fit( # train dataset
     train_dataset,
     validation_data=test_dataset,
-    epochs=8,
+    epochs=10,
 )
+
+# # Save the model to a file after training
+model.save('rps_model.h5')
