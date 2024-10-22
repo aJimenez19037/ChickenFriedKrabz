@@ -22,13 +22,13 @@ OR
 
 
 ### Run test file
-After the model has been trained, run the "rps_test.py" file. This file takes in images included in our "images" directory and uses the model to classify each image as either Rock, Paper, or Scissors
+After the model has been trained, run the "rps_test2.py" file. This file takes in images included in our "images" directory and uses the model to classify each image as either Rock, Paper, or Scissors. This file will also output the image it predicted with its prediction label.
 
-    python rps_test.py
+    python rps_test2.py
 
 OR
 
-    python3 rps_test.py
+    python3 rps_test2.py
 
 ### Hooray, you are done!
 
