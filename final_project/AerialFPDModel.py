@@ -1,6 +1,8 @@
 # Status: Bugged
 # Error Summary: 
 #     ValueError: setting an array element with a sequence. 
+#       File "/Users/cjramirez/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Desktop/Courses/Fall 2024/ME369_Python/FinalProject/AerialViewDataset/AerialFPDModel.py", line 84, in create_dataset
+#           bboxes = np.array(bboxes)
 #     The requested array has an inhomogeneous shape after 1 dimensions. 
 #     The detected shape was (52,) + inhomogeneous part.
 
