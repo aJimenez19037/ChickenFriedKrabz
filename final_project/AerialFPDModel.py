@@ -1,8 +1,10 @@
 import os
+import numpy as np
 from tqdm.auto import tqdm
 import xml.etree.ElementTree as ET
 
 import tensorflow as tf
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from tensorflow import keras
 
 import keras_cv
@@ -28,7 +30,7 @@ train_image_path = os.path.expanduser("~/Library/Mobile Documents/com~apple~Clou
 test_label_path = os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Desktop/Courses/Fall 2024/ME369_Python/FinalProject/AerialViewDataset/test/labels")
 test_image_path = os.path.expanduser("~/Library/Mobile Documents/com~apple~CloudDocs/Desktop/Desktop/Courses/Fall 2024/ME369_Python/FinalProject/AerialViewDataset/test/images")
 
-
+# Loading in the individual jpg and txt files 
 def load_yolo_labels(label_path, image_size=(640, 640)):
     """
     Load YOLO format labels (class_id x_center y_center width height).
@@ -54,15 +56,15 @@ def load_image(image_path, target_size=(640, 640)):
     Load and resize the image to the target size.
     Normalize the image to [0, 1] range.
     """
-    img = image.load_img(image_path, target_size=target_size)
-    img_array = image.img_to_array(img) / 255.0  # Normalize to [0, 1]
+    img = load_img(image_path, target_size=target_size)
+    img_array = img_to_array(img) / 255.0  # Normalize to [0, 1]
     return img_array
 
-    def create_dataset(image_dir, label_dir, target_size=(640, 640)):
+def create_dataset(image_dir, label_dir, target_size=(640, 640)):
     images = []
     bboxes = []
     class_names = []
-    
+
     for filename in os.listdir(image_dir):
         if filename.endswith(".jpg") or filename.endswith(".png"):
             image_path = os.path.join(image_dir, filename)
@@ -77,33 +79,34 @@ def load_image(image_path, target_size=(640, 640)):
                 boxes, labels = load_yolo_labels(label_path, target_size)
                 bboxes.append(boxes)
                 class_names.append(labels)
-    
+
     images = np.array(images)
     bboxes = np.array(bboxes)
     class_names = np.array(class_names)
-    
+
     return images, bboxes, class_names
 
-def preprocess_data(images, labels, augment=False):
-    labels = tf.one_hot(labels, NUM_CLASSES)
-    inputs = {"images": images, "labels": labels}
-    outputs = inputs
-    if augment:
-        outputs = augmenter(outputs)
-    return outputs['images'], outputs['labels']
-
 # def preprocess_data(images, labels, augment=False):
-#     # Restructure labels to include 'classes' and 'boxes'
-#     labels_dict = {
-#         "classes": tf.one_hot(labels, NUM_CLASSES),  # Your class labels
-#         "boxes": "xywh"              # Bounding box data; make sure this is defined correctly
-#     }
-    
-#     inputs = {"images": images, "labels": labels_dict}
+#     labels = tf.one_hot(labels, NUM_CLASSES)
+#     inputs = {"images": images, "labels": labels}
 #     outputs = inputs
 #     if augment:
 #         outputs = augmenter(outputs)
 #     return outputs['images'], outputs['labels']
+
+def preprocess_data(images, labels, bounding_boxes, augment=False):
+# Convert the labels to one-hot encoding (if necessary)
+    labels_dict = {
+    "classes": tf.one_hot(labels, NUM_CLASSES),  # One-hot encode class labels
+    "boxes": bounding_boxes  # Bounding box coordinates (xywh format)
+}
+
+    # Apply augmentations if needed
+    inputs = {"images": images, "labels": labels_dict}
+    if augment:
+        inputs = augmenter(inputs)
+
+    return inputs['images'], inputs['labels']
 
 
 
@@ -142,16 +145,16 @@ test_dataset = tf.keras.preprocessing.image_dataset_from_directory(
 #         tf.data.AUTOTUNE)
 
 # Apply the preprocessing and augmentations to the datasets
-train_dataset = train_dataset.map(
-    lambda x, y: preprocess_data(x, y, augment=True),
-    num_parallel_calls=tf.data.AUTOTUNE
-).prefetch(tf.data.AUTOTUNE)
 
-test_dataset = test_dataset.map(
-    preprocess_data,
-    num_parallel_calls=tf.data.AUTOTUNE
-).prefetch(tf.data.AUTOTUNE)
+train_images, train_bboxes, train_labels = create_dataset(train_label_path, train_label_path)
+test_images, test_bboxes, test_labels = create_dataset(test_image_path, test_label_path)
 
+# Convert to TensorFlow datasets
+train_dataset = tf.data.Dataset.from_tensor_slices((train_images, train_labels, train_bboxes))
+train_dataset = train_dataset.map(lambda x, y, z: preprocess_data(x, y, z, augment=True)).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
+
+test_dataset = tf.data.Dataset.from_tensor_slices((test_images, test_labels, test_bboxes))
+test_dataset = test_dataset.map(lambda x, y, z: preprocess_data(x, y, z, augment=False)).batch(BATCH_SIZE).prefetch(tf.data.AUTOTUNE)
 # Create a model using a pretrained backbone
 model = keras_cv.models.YOLOV8Detector(
     num_classes=NUM_CLASSES,
