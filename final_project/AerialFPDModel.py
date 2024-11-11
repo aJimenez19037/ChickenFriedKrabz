@@ -1,3 +1,10 @@
+# Status: Bugged
+# Error Summary: 
+#     ValueError: setting an array element with a sequence. 
+#     The requested array has an inhomogeneous shape after 1 dimensions. 
+#     The detected shape was (52,) + inhomogeneous part.
+
+
 import os
 import numpy as np
 from tqdm.auto import tqdm
