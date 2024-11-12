@@ -84,19 +84,39 @@ class DroneController:
 
     async def connect(self):
         print("Connecting to drone...")
-        await self.drone.connect(system_address="udp://:14540")
-        print("Waiting for drone to connect...")
-        async for state in self.drone.core.connection_state():
-            if state.is_connected:
-                print("-- Connected to drone!")
-                break
+        await self.drone.connect(system_address="udp://:14540")  # Wait for the connection to be initiated
+        
+        while True:
+            async for state in self.drone.core.connection_state():  # Wait for connection updates
+                if state.is_connected:  # Check if connected
+                    print("-- Connected to drone!")
+                    return  # Exit the function once connected
+            print("Still waiting for drone connection...")
+            await asyncio.sleep(1)  # Retry after a small delay
+
 
     async def arm_and_takeoff(self):
-        print("-- Arming")
-        await self.drone.action.arm()
+        # Retry arming until successful
+        while True:
+            try:
+                print("-- Arming drone...")
+                await self.drone.action.arm()
+                print("-- Drone armed successfully!")
+                break  # Exit loop once armed
+            except Exception as e:
+                print(f"Failed to arm: {e}. Retrying in 5 seconds...")
+                await asyncio.sleep(5)  # Retry after delay
 
-        print("-- Taking off")
-        await self.drone.action.takeoff()
+        # Command the drone to take off
+        while True:
+            try:
+                print("-- Taking off...")
+                await self.drone.action.takeoff()
+                print("-- Drone taking off successfully!")
+                break  # Exit loop once takeoff succeeds
+            except Exception as e:
+                print(f"Failed to take off: {e}. Retrying in 5 seconds...")
+                await asyncio.sleep(5)  # Retry after delay
 
         # Wait for the drone to reach a stable altitude
         await asyncio.sleep(5)
@@ -128,18 +148,20 @@ async def main():
     # Initialize keyboard controller
     keyboard_controller = KeyboardController()
 
-    # Initialize drone controller
+    # Initialize drone controller (uses MAVSDK)
     drone_controller = DroneController()
     await drone_controller.connect()
-    await drone_controller.arm_and_takeoff()
-    await drone_controller.set_offboard_mode()
 
-    # Run the camera stream asynchronously
+    # Start Running the camera stream asynchronously
+    print("-- Beginning Camera Stream ...")
     camera_stream_forward = CameraStream(CAMERA_PIPELINE_FORWARD, "Forward Camera Stream")
     camera_stream_downward = CameraStream(CAMERA_PIPELINE_DOWNWARD, "Downward Camera Stream")
     asyncio.create_task(camera_stream_forward.start())
     asyncio.create_task(camera_stream_downward.start())
 
+    #Begin arming and takeoff sequence
+    await drone_controller.arm_and_takeoff()
+    await drone_controller.set_offboard_mode()
 
     # Start controlling the drone using keyboard input
     await drone_controller.control_drone(keyboard_controller)
