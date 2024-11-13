@@ -66,6 +66,8 @@ class KeyboardController:
             down = -speed  # Going up decreases the down speed in body frame
         elif self.get_key("DOWN"):
             down = speed
+        else:
+            down = 0
         if self.get_key("w"):
             forward = speed
         elif self.get_key("s"):
@@ -126,12 +128,14 @@ class DroneController:
         initial_velocity = VelocityBodyYawspeed(0.0, 0.0, 0.0, 0.0)
         await self.drone.offboard.set_velocity_body(initial_velocity)
 
-        print("-- Setting offboard mode")
+        print("-- Setting offboard mode ...")
         await self.drone.offboard.start()
+        print("-- Offboard mode successfully set ...")
 
     async def control_drone(self, keyboard_controller):
         while True:
             vals = keyboard_controller.get_keyboard_input()
+            #print(vals[2])
             velocity = VelocityBodyYawspeed(vals[0], vals[1], vals[2], vals[3])
             await self.drone.offboard.set_velocity_body(velocity)
 
