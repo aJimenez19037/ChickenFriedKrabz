@@ -33,6 +33,10 @@ class CameraStream:
         self.pipeline = pipeline
         self.cap = None
 
+        # Initialize HOG descriptor with a pre-trained people detector
+        self.hog = cv2.HOGDescriptor()
+        self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
     async def start(self):
         self.cap = cv2.VideoCapture(self.pipeline, cv2.CAP_GSTREAMER)
         if not self.cap.isOpened():
@@ -46,7 +50,17 @@ class CameraStream:
                 break
 
             # Process the frame (e.g., display, save, or analyze)
+            # Convert frame to grayscale for HOG processing
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # Perform HOG detection
+            boxes, weights = self.hog.detectMultiScale(gray, winStride=(8, 8), scale=1.05)
+            for (x, y, w, h) in boxes:
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Draw HOG detections
+
+            # Display the frame with HOG detections
             cv2.imshow(self.cam_name, frame)
+        
 
             # Press 'q' to exit camera stream processing
             if cv2.waitKey(1) & 0xFF == ord('q'):
