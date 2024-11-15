@@ -1,13 +1,31 @@
-import asyncio
+import sys
+import os
+import importlib
+
+# Define paths to protobuf_old and protobuf_new
+protobuf_old_path = os.path.expanduser('~/protobuf_old')
+protobuf_new_path = os.path.expanduser('~/protobuf_new')
+
+#Ensure MAVSDK uses protobuf_old
+sys.path.insert(0, protobuf_old_path)
+import mavsdk
 from mavsdk import System
 from mavsdk.offboard import VelocityBodyYawspeed
+sys.path.remove(protobuf_old_path)
+
+#Ensure TensorFlow uses protobuf_new
+sys.path.insert(0, protobuf_new_path)
+importlib.reload(sys.modules["google.protobuf"])  # Reload protobuf
+import tensorflow as tf 
+
+import asyncio
+
 import pygame
 import cv2
 
 # GStreamer pipelines for forward and downward cameras
 CAMERA_PIPELINE_FORWARD = "udpsrc port=5600 ! application/x-rtp, encoding-name=H264 ! rtph264depay ! avdec_h264 ! videoconvert ! queue ! appsink sync=false drop=true max-buffers=1"
 CAMERA_PIPELINE_DOWNWARD = "udpsrc port=5601 ! application/x-rtp, encoding-name=H264 ! rtph264depay ! avdec_h264 ! videoconvert ! queue! appsink sync=false drop=true max-buffers=1"
-
 
 class CameraStream:
     def __init__(self, pipeline, cam_name):
