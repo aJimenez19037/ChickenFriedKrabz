@@ -87,6 +87,7 @@ class CameraStream:
         cv2.destroyAllWindows()
         print("Camera stream ended.")
 
+
     def process_hog(self, frame):
         # Convert frame to grayscale for HOG processing
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -95,15 +96,23 @@ class CameraStream:
         boxes, weights = self.hog.detectMultiScale(gray, winStride=(8, 8), scale=1.05)
         for (x, y, w, h) in boxes:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Draw HOG detections
+
+        detection_count = len(boxes)
+
+        #Overlay the detector label
+        cv2.putText(frame, "Detector: OpenCV HOG Descriptor", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50,255,0), 2)
+        cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         
         return frame
     
     def process_ultra_yolo(self, frame):
         #Make prediction
         results = self.ultra_yolo_model.predict(frame, imgsz = 640, conf = 0.25)
+        detection_count = 0
 
         # Annotate frame with YOLO detections
         for result in results:
+            detection_count += len(result.boxes)
             for box in result.boxes:
                 x1, y1, x2, y2 = map(int, box.xyxy[0])  # Convert bounding box coordinates to integers
                 confidence = box.conf[0]  # Confidence score
@@ -113,6 +122,10 @@ class CameraStream:
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cv2.putText(frame, f"{label}: {confidence:.2f}", (x1, y1 - 10),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        
+        # Overlay the detector label
+        cv2.putText(frame, "Detector: YoloV8 Model 1", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 255, 0), 2)
+        cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         
         return frame
 
