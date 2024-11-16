@@ -24,14 +24,19 @@ Pygame is a popular library for creating multimedia applications and games. Howe
 
 Website Resource: https://www.pygame.org/wiki/about
 #### OpenCV
-Used for real-time computer-vision tasks, Open-CV allows us to capture, process, and display the video feed taken from the drone's camera sensors within the simulation.
+Used for real-time computer-vision tasks, Open-CV allows us to capture, process, and display the video feed taken from the drone's camera sensors within the simulation as well as our bounding boxes from detection. We will also be using OpenCV for its HOG Descriptor Human Detection model.
 
 Website Resource: https://opencv.org/links/
+
 #### GStreamer
 Gstreamer is a multimedia framework for building audio and video pipelines. Here, we are using it to decode and process the video stream's from the drone's simulated camera sensors. 
 It's essentially providing the underlying mechanism to stream video from the simulation, to our separate drone control script. It also integrates well with OpenCV
 
 Website Resource: https://gstreamer.freedesktop.org/
+
+#### Ultralytics
+Ultralytics is a Python library built to simplify deployment and training of YOLO (You Only Look Once) models for real-time object detection. We use Ultralytics here to load in our YoloV8 models that we trained using Ultralytics and Roboflow Datasets in Google Colab.
+
 
 ## Environment Setup
 Before we can setup our simulations, we need to set up a proper environment to run Gazebo and PX4. If you are on a Windows system, 
@@ -96,7 +101,6 @@ After step 6, if no problems occured, your WSL and Ubuntu setup should be comple
 ## PX4 and Gazebo Installation
 Note: Cloning the PX4 repository and running the appropriate bash command (in the tutorial) after will also install Gazebo. 
 
-### Installation
 #### 1. Navigate to home directory of your wsl environment
     cd ~/
 #### 2. Download the PX4 Source Code
@@ -106,6 +110,45 @@ Note: Cloning the PX4 repository and running the appropriate bash command (in th
     bash ./PX4-Autopilot/Tools/setup/ubuntu.sh
 
 #### 4. Restart computer or WSL environment
+
+## Additional Package Installations
+After restarting your WSL Environment, restart WSL by opening powershell, and entering "wsl" into the terminal.
+Once you are in WSL, travel to your home directory and begin installing the additional packages below.
+
+        cd ~/
+
+#### Install GStreamer
+
+        sudo apt update
+        sudo apt install -y gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad         gstreamer1.0-plugins-ugly gstreamer1.0-libav libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+
+#### Install mavsdk
+
+        pip install mavsdk
+
+#### Install OpenCV
+
+        sudo apt-get install libopencv-dev python3-opencv
+
+#### Install Ultralytics and its dependencies
+This first command install ultralytics without its dependencies since we already installed OpenCV
+The second command installs the rest of its dependencies, excluding openCV
+
+        pip install ultralytics --no-deps
+        pip install torch torchvision torchaudio numpy scipy pandas matplotlib pyyaml tqdm seaborn tensorboard requests
+
+#### Install Pygame
+
+        pip install pygame
+
+## Setting up the Simulation
+
+#### 1. Clone this Repository 
+After navigating to your desired directory, clone this repo using the command below
+
+        git clone https://github.com/aJimenez19037/ChickenFriedKrabz.git
+
+#### 2. 
 
 
 
