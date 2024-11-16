@@ -66,8 +66,12 @@ if not cap.isOpened():
 plt.ion()  # Enable interactive mode
 fig, ax = plt.subplots()
 
+# Confidence threshold
+CONFIDENCE_THRESHOLD = 0.5  # Minimum confidence for bounding boxes
+HEIGHT_WIDTH_RATIO = 4      # Ratio threshold for classifying as "fallen" or not
+
 # Add a quit flag
-quit_program = False
+quit_program = False  # Initialize quit_program here
 
 # Process video frames
 try:
@@ -81,11 +85,34 @@ try:
         # Perform inference on the frame
         results = model.predict(source=frame, save=False, verbose=False)  # Use verbose=False to suppress output
 
-        # Annotate the frame with predictions
-        annotated_frame = results[0].plot()  # Get the annotated frame
+        # Filter predictions by confidence
+        boxes = results[0].boxes  # Boxes object containing all predictions
+        if boxes:
+            for box in boxes:
+                confidence = box.conf.item()  # Get the confidence score
+                if confidence >= CONFIDENCE_THRESHOLD:
+                    x1, y1, x2, y2 = box.xyxy[0]  # Extract coordinates
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)  # Convert to integers for OpenCV
+                    width = x2 - x1
+                    height = y2 - y1
+                    aspect_ratio = width / height if height > 0 else 0
+
+                    # Annotate the frame
+                    label = f"{confidence:.2f}"
+                    color = (0, 255, 0)  # Green color for the bounding box
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    cv2.putText(frame, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+                    # Check aspect ratio for classification
+                    if (1 / HEIGHT_WIDTH_RATIO) <= aspect_ratio <= HEIGHT_WIDTH_RATIO:
+                        print("[RESULT]: Standing up")
+                    else:
+                        print("[RESULT]: Laying down")
+                else:
+                    print(f"Filtered out box with confidence {confidence:.2f}")
 
         # Convert BGR to RGB for matplotlib
-        rgb_frame = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         # Display the frame using matplotlib
         ax.clear()
@@ -103,4 +130,3 @@ except KeyboardInterrupt:
 # Release the camera and close all windows
 cap.release()
 plt.close()
-
