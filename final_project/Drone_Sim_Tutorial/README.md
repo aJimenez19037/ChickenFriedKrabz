@@ -148,7 +148,66 @@ After navigating to your desired directory, clone this repo using the command be
 
         git clone https://github.com/aJimenez19037/ChickenFriedKrabz.git
 
-#### 2. 
+#### 2. Copy tar_uav drone model into PX4 Models directory
+
+        cp -r ChickenFriedKrabz/final_project/px4_mods/tar_uav ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models
+
+#### 3. Copy Drone airframe file into PX4 Airframes directory
+
+        cp -r ChickenFriedKrabz/final_project/px4_mods/4229_gazebo-classic_tar_uav ~/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/airframes
+
+#### 4. Add Airframe name to airframes CMakeLists.txt file
+        cd ~/PX4-Autopilot/ROMFS/px4fmu_common/init.d-posix/airframes
+        code CMakeLists.txt
+
+Add full airframe in appropriate section (4229_gazebo-classic_tar_uav)
+
+#### 5. Copy "people2.world" file into PX4 Worlds directory
+
+        cp -r ChickenFriedKrabz/final_project/world_file/people2.world ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/worlds
+
+#### 6. Add "tar_uav" and "people2" to sitl_targets_gazebo-classic.cmake file
+        cd ~/PX4-Autopilot/src/modules/simulation/simulator_mavlink
+        code sitl_targets_gazebo-classic.cmake
+Add the above words into the cmake file 
+
+#### 7. Copy Human Models into PX4 Models directory
+        cp -r ChickenFriedKrabz/final_project/human_models/PatientWheelChair ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+        cp -r ChickenFriedKrabz/final_project/human_models/casual_female ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+        cp -r ChickenFriedKrabz/final_project/human_models/male_visitor ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+        cp -r ChickenFriedKrabz/final_project/human_models/standing_person ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+        cp -r ChickenFriedKrabz/final_project/human_models/walking_actor ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+        cp -r ChickenFriedKrabz/final_project/human_models/walking_person ~/PX4-Autopilot/Tools/simulation/gazebo-classic/sitl_gazebo-classic/models/
+
+#### 8. Build PX4
+
+        cd ~/PX4-Autopilot
+        make px4_sitl
+
+## Running Simulation with Drone Control and Human Detection
+
+#### 1. Build drone model and world and launch simulation
+        cd ~/PX4-Autopilot
+        make px4_sitl gazebo-classic_tar_uav__people2
+This will launch your simulation with the drone and world of human models. 
+
+#### 10. Launch Drone Control Script
+launch a new wsl tab in your terminal, then navigate to the repository directory
+
+        cd ChickenFriedKrabz/final_project
+        python3 drone_control.py
+
+This should launch the drone control script. If everything works fine, a pygame window as well as two camera stream windows should pop up. To control the drone, click on the pygame window and use "wasd" keys for lateral movement, "up" and "down" arrows keys to increase and decrease altitude,  and "q" and "e" keys to yaw the drone.
+
+To perform detection, hold "1" key for OpenCV HOG Detector, and "2" or "3" for our trained YoloV8 Models.
+
+
+
+
+
+
+
+
 
 
 
