@@ -36,6 +36,14 @@ class CameraStream:
         self.pipeline = pipeline
         self.cap = None
 
+        #Declare Confidence Threshold for YoloV8 Detection
+        self.CONFIDENCE_THRESHOLD = 0.35
+
+        #Declare Aspect Ratio Threshold for Fallen Person Detection (Height/Width) and (W/H)
+        self.AR_THRESHOLD_HW = 2
+        self.AR_THRESHOLD_WH = 2
+
+
         # Initialize HOG descriptor with a pre-trained people detector
         self.hog = cv2.HOGDescriptor()
         self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
@@ -100,7 +108,7 @@ class CameraStream:
         detection_count = len(boxes)
 
         #Overlay the detector label
-        cv2.putText(frame, "Detector: OpenCV HOG Descriptor", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50,255,0), 2)
+        cv2.putText(frame, "Detector: OpenCV HOG Descriptor", (10,30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         
         return frame
@@ -118,13 +126,30 @@ class CameraStream:
                 confidence = box.conf[0]  # Confidence score
                 label = self.ultra_yolo_model.names.get(int(box.cls[0])) # Class label (convert class index to name)
 
-                # Draw bounding box and label
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                cv2.putText(frame, f"{label}: {confidence:.2f}", (x1, y1 - 10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                if confidence >= self.CONFIDENCE_THRESHOLD:
+                    #Determine Aspect Ratio
+                    x1, y1, x2, y2 = box.xyxy[0]  # Extract coordinates
+                    x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)  # Convert to integers for OpenCV
+                    width = x2 - x1
+                    height = y2 - y1
+                    AR_HW = height/width if width > 0 else 0
+                    AR_WH = width/height if height > 0 else 0
+
+                    #Check Aspect Ratio for Classiciation
+                    if (AR_HW < self.AR_THRESHOLD_HW and AR_WH < self.AR_THRESHOLD_WH):
+                        label = "STANDING"
+                        color = (0,255,0)
+                    else:
+                        label = "FALLEN"
+                        color = (0,0,255)
+
+                    # Draw bounding box and label
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    cv2.putText(frame, f"{label}: {confidence:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
         
         # Overlay the detector label
-        cv2.putText(frame, "Detector: YoloV8 Model 1", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (50, 255, 0), 2)
+        cv2.putText(frame, "Detector: YoloV8 Model 1", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         
         return frame
