@@ -4,7 +4,15 @@ As part of this project, we tested our person and fallen person detection model 
 The simulation was conducted using Gazebo and PX4. Gazebo, a widely used robotics simulator, provided the physical environment, 
 while PX4, an open-source autopilot software, provides low-level controls of the vehicle as well as pre-defined drone models to use.
 
-Other packages and software used for this simulation are described in the next section.
+Other packages and software used for this simulation are described in the next section below.
+
+<img width="1275" alt="Simulation-Image-OpenCV-HOG-Example" src="https://github.com/user-attachments/assets/37eefe96-a10d-43e2-b2b3-7d1a583f809d">
+Figure 1. Screenshot of simulation environment using OpenCV HOG Detector for human and Fallen person detection
+
+
+
+<img width="1265" alt="Simulation-Image-YoloV8Model1-Example" src="https://github.com/user-attachments/assets/215d5325-2dd7-4da2-ad2d-b87f841d6334">
+Figure 2. Screenshot of simulation environment using YoloV8 Model 2 (Trained on dataset of humans from an aerial view)
 
 ## Packages and Software Used
 #### MAVSDK
