@@ -37,7 +37,7 @@ class CameraStream:
         self.cap = None
 
         #Declare Confidence Threshold for YoloV8 Detection
-        self.CONFIDENCE_THRESHOLD = 0.35
+        self.CONFIDENCE_THRESHOLD = 0.25
 
         #Declare Aspect Ratio Threshold for Fallen Person Detection (Height/Width) and (W/H)
         self.AR_THRESHOLD_HW = 2
@@ -48,8 +48,11 @@ class CameraStream:
         self.hog = cv2.HOGDescriptor()
         self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-        #Initialize Ultralytics YoloV8 Trained Model
+        #Initialize Ultralytics YoloV8 Trained Model#1 (Dataset of people from an aerial view w/fallen people NOT classified)
         self.ultra_yolo_model = YOLO("weights/best.pt")
+
+        #Initialize Ultralytics YoloV8 Trained Model#2 (Dataset of people and fallen people already classified)
+        self.ultra_yolo_model_2 = YOLO("weights/best2.pt")
 
         #Specify current detection method: 1 = OpenCV HOG, 2 = YOLO
         self.detection_mode = 1
@@ -79,9 +82,10 @@ class CameraStream:
             if self.detection_mode == 1:
                 frame = self.process_hog(frame)
             elif self.detection_mode == 2:
-                frame = self.process_ultra_yolo(frame)
-
-
+                frame = self.process_ultra_yolo_1(frame)
+            elif self.detection_mode == 3:
+                frame = self.process_ultra_yolo_2(frame)
+            
             # Display the frame with HOG detections
             cv2.imshow(self.cam_name, frame)
         
@@ -113,7 +117,7 @@ class CameraStream:
         
         return frame
     
-    def process_ultra_yolo(self, frame):
+    def process_ultra_yolo_1(self, frame):
         #Make prediction
         results = self.ultra_yolo_model.predict(frame, imgsz = 640, conf = 0.25)
         detection_count = 0
@@ -146,10 +150,40 @@ class CameraStream:
                     # Draw bounding box and label
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
                     cv2.putText(frame, f"{label}: {confidence:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                
+        # Overlay the detector label
+        cv2.putText(frame, "Detector: YoloV8 Model 1", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
+        cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
+        
+        return frame
+    
+    def process_ultra_yolo_2(self, frame):
+        #Make prediction
+        results = self.ultra_yolo_model_2.predict(frame, imgsz = 640, conf = 0.25)
+        detection_count = 0
+
+        # Annotate frame with YOLO detections
+        for result in results:
+            detection_count += len(result.boxes)
+            for box in result.boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])  # Convert bounding box coordinates to integers
+                confidence = box.conf[0]  # Confidence score
+                label = self.ultra_yolo_model_2.names.get(int(box.cls[0])) # Class label (convert class index to name)
+
+                if confidence >= self.CONFIDENCE_THRESHOLD:
+                    
+                    if label == "Fall-Detected":
+                        color = (0,0,255)
+                    else:
+                        color = (0,255,0)
+
+                    # Draw bounding box and label
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    cv2.putText(frame, f"{label}: {confidence:.2f}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         
         # Overlay the detector label
-        cv2.putText(frame, "Detector: YoloV8 Model 1", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
+        cv2.putText(frame, "Detector: YoloV8 Model 2", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         cv2.putText(frame, f"Detections: {detection_count}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 0, 0), 2)
         
         return frame
@@ -201,7 +235,10 @@ class KeyboardController:
             print("Switched to OpenCV HOG detection ...")
         elif self.get_key("2"):
             detection_mode = 2
-            print("Switched to Ultralytics YOLO detection ...")
+            print("Switched to Ultralytics YoloV8 Model 1 detection ...")
+        elif self.get_key("3"):
+            detection_mode = 3
+            print("Switched to Ultralytics YOLOV8 Model 2 detection ...")
         elif self.get_key("0"):
             detection_mode = None
             print("Switched OFF Detection")
