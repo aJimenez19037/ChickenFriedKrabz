@@ -12,7 +12,7 @@ Figure 1. Screenshot of simulation environment using OpenCV HOG Detector for hum
 
 
 <img width="1265" alt="Simulation-Image-YoloV8Model1-Example" src="https://github.com/user-attachments/assets/215d5325-2dd7-4da2-ad2d-b87f841d6334">
-Figure 2. Screenshot of simulation environment using YoloV8 Model 2 (Trained on dataset of humans from an aerial view)
+Figure 2. Screenshot of simulation environment using YoloV8 Model 1 (Trained on dataset of humans from an aerial view)
 
 ## Packages and Software Used
 #### MAVSDK
