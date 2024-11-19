@@ -42,7 +42,7 @@
 
   <!--Adding Human Models-->
     <!-- Casual Female -->
-    <!-- 12 Instances -->
+    <!-- 17 Instances -->
     <include>
       <uri>model://casual_female</uri>
       <name>casual_female_1</name>
@@ -134,7 +134,7 @@
 
 
     <!-- Person Walking -->
-    <!-- 12 Instances -->
+    <!-- 17 Instances -->
     <include>
       <uri>model://person_walking</uri>
       <name>person_walking_1</name>
@@ -285,7 +285,7 @@
     </include>
     
     <!-- Patient in Wheelchair -->
-    <!-- 4 Instances -->
+    <!-- 3 Instances -->
     <include>
       <uri>model://PatientWheelChair</uri>
       <name>PatientWheelChair_1</name>
