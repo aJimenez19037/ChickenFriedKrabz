@@ -1,34 +1,35 @@
 import sys
 import os
+import importlib
 
 # Define paths to protobuf_old and protobuf_new
 protobuf_old_path = os.path.expanduser('~/protobuf_old')
 #protobuf_new_path = os.path.expanduser('~/protobuf_new')
 
-#Ensure MAVSDK uses protobuf_old. This is to prevent protobuf version conflict between mavsdk and Tensorflow
+#Ensure MAVSDK uses protobuf_old
 sys.path.insert(0, protobuf_old_path)
 import mavsdk
 from mavsdk import System
 from mavsdk.offboard import VelocityBodyYawspeed
+#from mavsdk.offboard import PositionNedYaw
 sys.path.remove(protobuf_old_path)
 
-#Import Ultralytics for YoloV8 Detection model
+#Ensure TensorFlow uses protobuf_new
+#sys.path.insert(0, protobuf_new_path)
+#importlib.reload(sys.modules["google.protobuf"])  # Reload protobuf
+#import tensorflow as tf 
+
 from ultralytics import YOLO
 
-#Import Asyncio to run functions concurrently
 import asyncio
 
-#Import Pygame for Keyboard inputs and manual drone control
 import pygame
-
-#Import OpenCV for image processing and display
 import cv2
 
-# GStreamer pipelines for recieving, processing, and displaying video stream from Gazebo Simulation
+# GStreamer pipelines for forward and downward cameras
 CAMERA_PIPELINE_FORWARD = "udpsrc port=5600 ! application/x-rtp, encoding-name=H264 ! rtph264depay ! avdec_h264 ! videoconvert ! queue ! appsink sync=false drop=true max-buffers=1"
 CAMERA_PIPELINE_DOWNWARD = "udpsrc port=5601 ! application/x-rtp, encoding-name=H264 ! rtph264depay ! avdec_h264 ! videoconvert ! queue! appsink sync=false drop=true max-buffers=1"
 
-#This class handles retrieving the video stream from Gazebo/Drone Simulation, performing detection on images captured, and displaying results
 class CameraStream:
     def __init__(self, pipeline, cam_name):
         self.cam_name = cam_name
@@ -56,7 +57,7 @@ class CameraStream:
         #Specify current detection method: 1 = OpenCV HOG, 2 = YOLO
         self.detection_mode = 1
 
-    #Perform detection depending on detection mode and display to screen
+
     async def start(self, keyboard_controller):
         self.cap = cv2.VideoCapture(self.pipeline, cv2.CAP_GSTREAMER)
         if not self.cap.isOpened():
@@ -189,7 +190,7 @@ class CameraStream:
 
 
 
-#This class used pygame to capture keyboard inputs and determine what detection mode to use as well as how the drone should be moving
+
 class KeyboardController:
     def __init__(self):
         pygame.init()
@@ -247,7 +248,7 @@ class KeyboardController:
 
         return [forward, right, down, yaw_speed, self.detection_mode]
 
-#This class useds mavsdk library to communicate and send commands to the drone
+
 class DroneController:
     def __init__(self):
         self.drone = System()
@@ -300,7 +301,27 @@ class DroneController:
         await self.drone.offboard.start()
         print("-- Offboard mode successfully set ...")
     
-    #This function runs continuisly (but asychronously) to control the drone       
+    # async def hold_position(self):
+    #     # Retrieve the current position
+    #     async for position_velocity in self.drone.telemetry.position_velocity_ned():
+    #         current_position = position_velocity.position #Extract position part
+    #         break  # Exit after retrieving the first position
+
+    #     # Retrieve the current yaw
+    #     async for attitude in self.drone.telemetry.attitude_euler():
+    #         current_yaw = attitude.yaw_deg  # Get yaw in degrees
+    #         break  # Exit after retrieving the first attitude
+        
+    #     await self.drone.offboard.set_position_ned(
+    #             PositionNedYaw(
+    #                 north_m=current_position.north_m,  # Maintain current north position
+    #                 east_m=current_position.east_m,   # Maintain current east position
+    #                 down_m=current_position.down_m,  # Hold current altitude
+    #                 yaw_deg=current_yaw  # Replace with the desired yaw or maintain current
+    #             )
+    #         )
+            
+
     async def control_drone(self, keyboard_controller):
         while True:
             vals = keyboard_controller.get_keyboard_input()
