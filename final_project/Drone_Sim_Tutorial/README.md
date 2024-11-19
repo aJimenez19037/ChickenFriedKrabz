@@ -107,6 +107,16 @@ You can verify that Ubuntu 20.04 is running by checking the Ubuntu version insid
 After step 6, if no problems occured, your WSL and Ubuntu setup should be complete. You can now continue forward with PX4 installation
 
 ## PX4 and Gazebo Installation
+### What is PX4?
+PX4 is an open-source autopilot framework designed for autonomous drones and other unmanned vehicles. It provides a flight control system that can be used to develop   software for multirotors, fixed-wing aircraft, and other autonomous vehicles. PX4 handles critical tasks such as:
+
+- Flight control
+- Sensor fusion
+- GPS-based navigation
+- Handling motor outputs
+- Drone configuration and safety features
+- PX4 is widely used in research, commercial drones, and hobbyist projects.
+
 Note: Cloning the PX4 repository and running the appropriate bash command (in the tutorial) after will also install Gazebo. 
 
 #### 1. Navigate to home directory of your wsl environment
