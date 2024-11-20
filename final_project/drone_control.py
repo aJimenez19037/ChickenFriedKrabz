@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 # Define paths to protobuf_old and protobuf_new
 protobuf_old_path = os.path.expanduser('~/protobuf_old')
@@ -77,7 +78,6 @@ class CameraStream:
             else:
                 self.detection_mode = None
 
-        
             if self.detection_mode == 1:
                 frame = self.process_hog(frame)
             elif self.detection_mode == 2:
@@ -103,8 +103,12 @@ class CameraStream:
         # Convert frame to grayscale for HOG processing
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+
         # Perform HOG detection
+        start = time.time()
         boxes, weights = self.hog.detectMultiScale(gray, winStride=(8, 8), scale=1.05)
+        end = time.time()
+        print(f"Detection time: {end - start:.5f} seconds")
         for (x, y, w, h) in boxes:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)  # Draw HOG detections
 
@@ -116,6 +120,7 @@ class CameraStream:
         
         return frame
     
+    #Process image based on YoloV8 Model trained on aerial view of people + Aspect Ratio based fallen detection
     def process_ultra_yolo_1(self, frame):
         #Make prediction
         results = self.ultra_yolo_model.predict(frame, imgsz = 640, conf = 0.25)
@@ -156,6 +161,7 @@ class CameraStream:
         
         return frame
     
+    #Perform Detection based on YoloV8 Model trained on fallen and standing from an aerial view dataset
     def process_ultra_yolo_2(self, frame):
         #Make prediction
         results = self.ultra_yolo_model_2.predict(frame, imgsz = 640, conf = 0.25)
