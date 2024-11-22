@@ -219,6 +219,8 @@ This should launch the drone control script. If everything works fine, a pygame 
 
 To perform detection, hold "1" key for OpenCV HOG Detector, and "2" or "3" for our trained YoloV8 Models.
 
+*NOTE: If the simulation launches and the script succesfully connects the simulation, but the camera streams do not pop up, it is likely because the opencv that was installed was not built with Gstreamer functionality on. Our code relies on a Gstreamer pipeline from the simulation to this script to grab the videostream from the simulation.
+
 
 
 
