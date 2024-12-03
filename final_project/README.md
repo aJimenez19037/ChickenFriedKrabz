@@ -13,7 +13,7 @@ In order to evaluate these detection methods for an aerial application, we used 
 More Information about this project is shared in our presentation link:
 https://docs.google.com/presentation/d/1U7FsWdmR6j_znYkj2MU7bBG-hoJp8BWygaLujGOk1p4/edit?usp=sharing
 
-*To learn more about our project code and run this yourself, navigate to the "Drone_Simulation_Tutorial" directory in this repo.
+*To learn more about our project code and run this yourself, navigate to the "Drone_Sim_Tutorial" directory in this repo.
 
 
 
