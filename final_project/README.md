@@ -1,5 +1,6 @@
 # Aerial Based Fallen Person Detection
 ME369P Final Project
+
 Group Members: Joshua Caratao, Antonio Jimenez, Charles Ramirez
 
 The purpose of our project was to investigate methods for "Aerial-Based Fallen Person detection". The 3 methods we investigated were: 
